@@ -2,80 +2,79 @@ import os
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from models import db, Volunteer, Opportunity, Application
 from datetime import datetime
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-key-volunteer-system-198234'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///volunteer.db'
+# Check if running on Vercel serverless
+if os.environ.get('VERCEL'):
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/volunteer.db'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///volunteer.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 db.init_app(app)
-
-# Helper function to seed opportunities if the database is empty
-def seed_database():
-    with app.app_context():
-        db.create_all()
-        if Opportunity.query.count() == 0:
-            opportunities = [
-                Opportunity(
-                    title="Green City Tree Planting",
-                    description="Join us for our annual reforestation drive. We will be planting native trees in the city park to increase green cover, combat local warming, and create beautiful natural spaces for the community. Wear comfortable clothing and bringing gardening gloves is recommended. Shovels, water, and lunch will be provided!",
-                    category="Environment",
-                    date="2026-06-25",
-                    time="09:00 AM - 01:00 PM",
-                    location="Central Park East Ground",
-                    required_skills="Physical endurance, Teamwork",
-                    max_slots=15,
-                    slots_filled=0
-                ),
-                Opportunity(
-                    title="Youth Math & Science Tutoring",
-                    description="Help middle school students from underserved communities catch up on critical STEM subjects. Tutors will work one-on-one or in small groups to explain core concepts, help with homework, and conduct fun science experiments. Educational materials and guidelines are fully provided.",
-                    category="Education",
-                    date="2026-06-28",
-                    time="04:00 PM - 06:30 PM",
-                    location="Downtown Public Library",
-                    required_skills="Patience, Strong STEM background, Communication",
-                    max_slots=8,
-                    slots_filled=0
-                ),
-                Opportunity(
-                    title="Community Food Bank Sorting",
-                    description="Help sort, package, and inventory incoming food donations for distribution to local shelters. This fast-paced, high-impact volunteer activity is perfect for teams or individuals looking to make a direct impact on hunger relief in our city.",
-                    category="Community",
-                    date="2026-07-02",
-                    time="10:00 AM - 02:00 PM",
-                    location="Metro Food Bank Depot",
-                    required_skills="Sorting, Attention to detail, Light lifting",
-                    max_slots=25,
-                    slots_filled=0
-                ),
-                Opportunity(
-                    title="Senior Tech Assist Workshop",
-                    description="Empower elder members of our community by teaching them how to use smartphones, tablets, video-call family members, and safely browse the internet. Your patience and kindness can help bridge the digital divide and reduce social isolation.",
-                    category="Community",
-                    date="2026-07-05",
-                    time="11:00 AM - 01:30 PM",
-                    location="Harmony Retirement Center",
-                    required_skills="Patience, Friendly demeanor, Digital literacy",
-                    max_slots=6,
-                    slots_filled=0
-                ),
-                Opportunity(
-                    title="Emergency Disaster Relief Drill",
-                    description="Participate in a preparedness drill organized by local rescue teams. Volunteers will roleplay as citizens requiring shelter and evacuation support, helping coordinators test emergency logistics, medical triage response, and shelter setups.",
-                    category="Disaster Relief",
-                    date="2026-07-12",
-                    time="08:00 AM - 03:00 PM",
-                    location="County Fairgrounds Arena",
-                    required_skills="Quick response, Teamwork, Calm under pressure",
-                    max_slots=40,
-                    slots_filled=0
-                )
-            ]
-            db.session.bulk_save_objects(opportunities)
-            db.session.commit()
-            print("Database seeded successfully with default opportunities!")
-
+# Initialize database and seed opportunities automatically on startup
+with app.app_context():
+    db.create_all()
+    if Opportunity.query.count() == 0:
+        opportunities = [
+            Opportunity(
+                title="Green City Tree Planting",
+                description="Join us for our annual reforestation drive. We will be planting native trees in the city park to increase green cover, combat local warming, and create beautiful natural spaces for the community. Wear comfortable clothing and bringing gardening gloves is recommended. Shovels, water, and lunch will be provided!",
+                category="Environment",
+                date="2026-06-25",
+                time="09:00 AM - 01:00 PM",
+                location="Central Park East Ground",
+                required_skills="Physical endurance, Teamwork",
+                max_slots=15,
+                slots_filled=0
+            ),
+            Opportunity(
+                title="Youth Math & Science Tutoring",
+                description="Help middle school students from underserved communities catch up on critical STEM subjects. Tutors will work one-on-one or in small groups to explain core concepts, help with homework, and conduct fun science experiments. Educational materials and guidelines are fully provided.",
+                category="Education",
+                date="2026-06-28",
+                time="04:00 PM - 06:30 PM",
+                location="Downtown Public Library",
+                required_skills="Patience, Strong STEM background, Communication",
+                max_slots=8,
+                slots_filled=0
+            ),
+            Opportunity(
+                title="Community Food Bank Sorting",
+                description="Help sort, package, and inventory incoming food donations for distribution to local shelters. This fast-paced, high-impact volunteer activity is perfect for teams or individuals looking to make a direct impact on hunger relief in our city.",
+                category="Community",
+                date="2026-07-02",
+                time="10:00 AM - 02:00 PM",
+                location="Metro Food Bank Depot",
+                required_skills="Sorting, Attention to detail, Light lifting",
+                max_slots=25,
+                slots_filled=0
+            ),
+            Opportunity(
+                title="Senior Tech Assist Workshop",
+                description="Empower elder members of our community by teaching them how to use smartphones, tablets, video-call family members, and safely browse the internet. Your patience and kindness can help bridge the digital divide and reduce social isolation.",
+                category="Community",
+                date="2026-07-05",
+                time="11:00 AM - 01:30 PM",
+                location="Harmony Retirement Center",
+                required_skills="Patience, Friendly demeanor, Digital literacy",
+                max_slots=6,
+                slots_filled=0
+            ),
+            Opportunity(
+                title="Emergency Disaster Relief Drill",
+                description="Participate in a preparedness drill organized by local rescue teams. Volunteers will roleplay as citizens requiring shelter and evacuation support, helping coordinators test emergency logistics, medical triage response, and shelter setups.",
+                category="Disaster Relief",
+                date="2026-07-12",
+                time="08:00 AM - 03:00 PM",
+                location="County Fairgrounds Arena",
+                required_skills="Quick response, Teamwork, Calm under pressure",
+                max_slots=40,
+                slots_filled=0
+            )
+        ]
+        db.session.bulk_save_objects(opportunities)
+        db.session.commit()
+        print("Database initialized and seeded successfully!")
 # Context processor to expose log-in status to templates
 @app.context_processor
 def inject_user():
@@ -83,9 +82,7 @@ def inject_user():
     if 'volunteer_id' in session:
         user = Volunteer.query.get(session['volunteer_id'])
     return dict(current_user=user)
-
 # ==================== VIEW ROUTES ====================
-
 @app.route('/')
 def home():
     # Fetch top statistics
@@ -104,7 +101,6 @@ def home():
                            opps_count=opps_count,
                            total_hours=total_hours + 840, # Add seed offset
                            featured_opps=featured_opps)
-
 @app.route('/opportunities')
 def opportunities():
     search_query = request.args.get('search', '').strip()
@@ -128,13 +124,11 @@ def opportunities():
                            categories=categories, 
                            selected_category=category, 
                            search_query=search_query)
-
 @app.route('/register')
 def register():
     if 'volunteer_id' in session:
         return redirect(url_for('dashboard'))
     return render_template('register.html')
-
 @app.route('/dashboard')
 def dashboard():
     if 'volunteer_id' not in session:
@@ -159,7 +153,6 @@ def dashboard():
                            total_hours=total_hours,
                            completed_count=len(completed_apps),
                            upcoming_count=len(upcoming_events))
-
 @app.route('/admin')
 def admin():
     # Simple open coordinator panel for the demo
@@ -185,15 +178,11 @@ def admin():
                            active_opps=active_opps,
                            pending_apps=pending_apps,
                            categories_data=cat_counts)
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('home'))
-
-
 # ==================== API ENDPOINTS ====================
-
 @app.route('/api/register', methods=['POST'])
 def api_register():
     data = request.get_json() or {}
@@ -235,7 +224,6 @@ def api_register():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
-
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.get_json() or {}
@@ -251,7 +239,6 @@ def api_login():
         
     session['volunteer_id'] = volunteer.id
     return jsonify({'success': True, 'message': 'Login successful!'})
-
 @app.route('/api/apply/<int:opportunity_id>', methods=['POST'])
 def api_apply(opportunity_id):
     if 'volunteer_id' not in session:
@@ -287,7 +274,6 @@ def api_apply(opportunity_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
-
 @app.route('/api/cancel-apply/<int:app_id>', methods=['POST'])
 def api_cancel_apply(app_id):
     if 'volunteer_id' not in session:
@@ -311,7 +297,6 @@ def api_cancel_apply(app_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
-
 @app.route('/api/admin/opportunity', methods=['POST'])
 def api_create_opportunity():
     # Simple mock authentication (open admin dashboard for demonstration)
@@ -345,7 +330,6 @@ def api_create_opportunity():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
-
 @app.route('/api/admin/application/<int:app_id>/status', methods=['POST'])
 def api_update_application_status(app_id):
     data = request.get_json() or {}
@@ -394,8 +378,6 @@ def api_update_application_status(app_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
-
-# Execute seeder before startup
+# Run local dev server if executed directly
 if __name__ == '__main__':
-    seed_database()
     app.run(debug=True, port=5000)
