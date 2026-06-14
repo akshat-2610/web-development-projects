@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}My Volunteer Dashboard | LendAHand{% endblock %}
+
+{% block content %}
+<section class="dashboard-hero">
+    <div class="container dashboard-header-grid">
+        <div class="user-info-banner">
+            <div class="avatar-large">{{ volunteer.name[0] }}</div>
+            <div>
+                <h1>Welcome, {{ volunteer.name }}!</h1>
+                <p>Volunteer Member since {{ volunteer.join_date.strftime('%B %Y') }}</p>
+            </div>
+        </div>
+        
+        <div class="badge-status-card glass-card">
+            <div class="badge-header">
+                <span class="badge-icon">🏆</span>
+                <div>
+                    <h3>{{ volunteer.badge }}</h3>
+                    <span>Level {{ volunteer.level }} Volunteer</span>
+                </div>
+            </div>
+            
+            <div class="badge-progress-container">
+                <div class="progress-labels">
+                    <span>Progress to Next Level</span>
+                    <span>
+                        {% if volunteer.level == 1 %}
+                            {{ total_hours | round(1) }} / 5 hrs
+                        {% elif volunteer.level == 2 %}
+                            {{ total_hours | round(1) }} / 20 hrs
+                        {% elif volunteer.level == 3 %}
+                            {{ total_hours | round(1) }} / 50 hrs
+                        {% else %}
+                            Max Level Reached!
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="progress-bar">
+                    {% if volunteer.level == 1 %}
+                        <div class="progress-fill" style="width: {{ (total_hours / 5 * 100) | min(100) }}%"></div>
+                    {% elif volunteer.level == 2 %}
+                        <div class="progress-fill" style="width: {{ (total_hours / 20 * 100) | min(100) }}%"></div>
+                    {% elif volunteer.level == 3 %}
+                        <div class="progress-fill" style="width: {{ (total_hours / 50 * 100) | min(100) }}%"></div>
+                    {% else %}
+                        <div class="progress-fill" style="width: 100%"></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Dashboard Main Stats -->
+<section class="dashboard-stats-section">
+    <div class="container grid grid-3">
+        <div class="dashboard-stat-card glass-card text-center">
+            <div class="stat-num">{{ total_hours | round(1) }}</div>
+            <div class="stat-label">Hours Contributed</div>
+        </div>
+        <div class="dashboard-stat-card glass-card text-center">
+            <div class="stat-num">{{ upcoming_count }}</div>
+            <div class="stat-label">Upcoming Shifts</div>
+        </div>
+        <div class="dashboard-stat-card glass-card text-center">
+            <div class="stat-num">{{ completed_count }}</div>
+            <div class="stat-label">Completed Projects</div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Dashboard Layout -->
+<section class="dashboard-layout-section">
+    <div class="container dashboard-main-grid">
+        <!-- Main Column: Schedule and Activity -->
+        <div class="dashboard-activity-column">
+            <!-- 1. Upcoming Schedule -->
+            <div class="dashboard-block glass-card">
+                <h2>Upcoming Shifts</h2>
+                {% set has_upcoming = false %}
+                <div class="dashboard-list">
+                    {% for app in applications %}
+                        {% if app.status in ['Pending', 'Approved'] %}
+                            {% set has_upcoming = true %}
+                            <div class="dashboard-item" id="app-row-{{ app.id }}">
+                                <div class="item-info">
+                                    <span class="opp-category-tag {{ app.opportunity.category.lower().replace(' ', '-') }}">{{ app.opportunity.category }}</span>
+                                    <h3>{{ app.opportunity.title }}</h3>
+                                    
+                                    <div class="item-meta">
+                                        <span>📅 {{ app.opportunity.date }}</span>
+                                        <span>⏰ {{ app.opportunity.time }}</span>
+                                        <span>📍 {{ app.opportunity.location }}</span>
+                                    </div>
+                                </div>
+                                <div class="item-actions">
+                                    <span class="status-badge {{ app.status.lower() }}">{{ app.status }}</span>
+                                    <button onclick="cancelRegistration({{ app.id }})" class="btn btn-outline btn-sm">Cancel Shift</button>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if not has_upcoming %}
+                        <div class="empty-list-placeholder text-center">
+                            <p>You have no upcoming shifts scheduled.</p>
+                            <a href="{{ url_for('opportunities') }}" class="btn btn-primary btn-sm">Browse Opportunities</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- 2. Past Activity History -->
+            <div class="dashboard-block glass-card margin-top">
+                <h2>Participation History</h2>
+                {% set has_completed = false %}
+                <div class="dashboard-list">
+                    {% for app in applications %}
+                        {% if app.status == 'Completed' %}
+                            {% set has_completed = true %}
+                            <div class="dashboard-item">
+                                <div class="item-info">
+                                    <span class="opp-category-tag {{ app.opportunity.category.lower().replace(' ', '-') }}">{{ app.opportunity.category }}</span>
+                                    <h3>{{ app.opportunity.title }}</h3>
+                                    
+                                    <div class="item-meta">
+                                        <span>📅 {{ app.opportunity.date }}</span>
+                                        <span>📍 {{ app.opportunity.location }}</span>
+                                    </div>
+                                </div>
+                                <div class="item-actions">
+                                    <span class="status-badge completed">Completed</span>
+                                    <span class="hours-logged-tag">{{ app.hours_logged }} hrs logged</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if not has_completed %}
+                        <div class="empty-list-placeholder text-center">
+                            <p>No completed activities yet. Your hours will appear here once approved by coordinators.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar Column: Profile Details -->
+        <div class="dashboard-sidebar-column">
+            <div class="dashboard-block glass-card">
+                <h2>My Volunteer Profile</h2>
+                
+                <div class="profile-details-list">
+                    <div class="profile-detail">
+                        <strong>Contact Info</strong>
+                        <p>📧 {{ volunteer.email }}</p>
+                        <p>📞 {{ volunteer.phone or 'Not provided' }}</p>
+                        <p>🎂 Age: {{ volunteer.age or 'Not provided' }}</p>
+                    </div>
+                    
+                    <div class="profile-detail">
+                        <strong>My Skills</strong>
+                        <div class="profile-tags">
+                            {% if volunteer.skills %}
+                                {% for skill in volunteer.skills.split(',') %}
+                                    <span class="profile-tag-badge">{{ skill }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span>No skills specified</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="profile-detail">
+                        <strong>Cause Interests</strong>
+                        <div class="profile-tags">
+                            {% if volunteer.interests %}
+                                {% for interest in volunteer.interests.split(',') %}
+                                    <span class="profile-tag-badge">{{ interest }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span>No interests specified</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="profile-detail">
+                        <strong>My Availability</strong>
+                        <div class="profile-tags">
+                            {% if volunteer.availability %}
+                                {% for day in volunteer.availability.split(',') %}
+                                    <span class="profile-tag-badge availability-tag">{{ day }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span>No availability specified</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

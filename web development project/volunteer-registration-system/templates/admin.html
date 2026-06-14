@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+{% block title %}Coordinators Portal | LendAHand{% endblock %}
+
+{% block content %}
+<section class="admin-hero">
+    <div class="container">
+        <h1>Coordinators Portal</h1>
+        <p class="subheading">Manage volunteer opportunities, review applications, and track community service impact.</p>
+    </div>
+</section>
+
+<!-- Admin Stats Widgets -->
+<section class="admin-stats-widgets">
+    <div class="container grid grid-3">
+        <div class="admin-stat-card glass-card text-center">
+            <div class="stat-num">{{ total_volunteers }}</div>
+            <div class="stat-label">Registered Volunteers</div>
+        </div>
+        <div class="admin-stat-card glass-card text-center">
+            <div class="stat-num">{{ active_opps }}</div>
+            <div class="stat-label">Active Causes</div>
+        </div>
+        <div class="admin-stat-card glass-card text-center">
+            <div class="stat-num" id="admin-pending-num">{{ pending_apps }}</div>
+            <div class="stat-label">Pending Reviews</div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Admin Layout Grid -->
+<section class="admin-main-section">
+    <div class="container admin-grid">
+        <!-- Left Column: Manage Applications & Opportunities -->
+        <div class="admin-operations-column">
+            <!-- 1. Applications Registry -->
+            <div class="admin-block glass-card">
+                <h2>Application Reviews</h2>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Volunteer</th>
+                                <th>Opportunity</th>
+                                <th>Apply Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-applications-table">
+                            {% for app in applications %}
+                                <tr id="app-tr-{{ app.id }}">
+                                    <td>
+                                        <strong>{{ app.volunteer.name }}</strong>
+                                        <div class="small-text">{{ app.volunteer.email }}</div>
+                                    </td>
+                                    <td>
+                                        <strong>{{ app.opportunity.title }}</strong>
+                                        <div class="small-text">{{ app.opportunity.category }}</div>
+                                    </td>
+                                    <td>{{ app.apply_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <span class="status-badge {{ app.status.lower() }}" id="status-badge-{{ app.id }}">{{ app.status }}</span>
+                                    </td>
+                                    <td class="action-cell" id="action-cell-{{ app.id }}">
+                                        {% if app.status == 'Pending' %}
+                                            <button onclick="updateAppStatus({{ app.id }}, 'Approved')" class="btn btn-emerald btn-xs">Approve</button>
+                                            <button onclick="updateAppStatus({{ app.id }}, 'Denied')" class="btn btn-rose btn-xs">Deny</button>
+                                        {% elif app.status == 'Approved' %}
+                                            <button onclick="promptLogHours({{ app.id }})" class="btn btn-primary btn-xs">Mark Completed</button>
+                                        {% elif app.status == 'Completed' %}
+                                            <span class="logged-hours-badge">{{ app.hours_logged }} hrs logged</span>
+                                        {% else %}
+                                            <span class="muted-text">—</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center muted-text py-4">No applications received yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 2. Active Opportunities List -->
+            <div class="admin-block glass-card margin-top">
+                <h2>Current Opportunities Directory</h2>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Opportunity Title</th>
+                                <th>Category</th>
+                                <th>Date & Time</th>
+                                <th>Location</th>
+                                <th>Roster</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for opp in opportunities %}
+                                <tr>
+                                    <td><strong>{{ opp.title }}</strong></td>
+                                    <td><span class="opp-category-tag {{ opp.category.lower().replace(' ', '-') }}">{{ opp.category }}</span></td>
+                                    <td>
+                                        <div>{{ opp.date }}</div>
+                                        <div class="small-text">{{ opp.time }}</div>
+                                    </td>
+                                    <td>{{ opp.location }}</td>
+                                    <td>
+                                        <div class="roster-bar-container">
+                                            <span class="small-text">{{ opp.slots_filled }} / {{ opp.max_slots }}</span>
+                                            <div class="roster-bar">
+                                                <div class="roster-fill" style="width: {{ (opp.slots_filled / opp.max_slots * 100) | min(100) }}%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center muted-text py-4">No opportunities created yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column: Create Opportunity & Analytics -->
+        <div class="admin-sidebar-column">
+            <!-- Create Opportunity Form -->
+            <div class="admin-block glass-card">
+                <h2>Post New Opportunity</h2>
+                <form id="create-opp-form" onsubmit="handleCreateOpportunity(event)">
+                    <div class="form-group">
+                        <label for="opp-title">Opportunity Title</label>
+                        <input type="text" id="opp-title" required placeholder="e.g. Tree Planting Drive">
+                    </div>
+                    <div class="form-group">
+                        <label for="opp-category">Category</label>
+                        <select id="opp-category" required>
+                            <option value="" disabled selected>Select Category</option>
+                            <option value="Environment">Environment</option>
+                            <option value="Education">Education</option>
+                            <option value="Community">Community</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Disaster Relief">Disaster Relief</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label for="opp-date">Date</label>
+                            <input type="date" id="opp-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="opp-max-slots">Max Slots</label>
+                            <input type="number" id="opp-max-slots" required min="1" value="10">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="opp-time">Time</label>
+                        <input type="text" id="opp-time" required placeholder="e.g. 09:00 AM - 01:00 PM">
+                    </div>
+                    <div class="form-group">
+                        <label for="opp-location">Location</label>
+                        <input type="text" id="opp-location" required placeholder="e.g. Central Park East">
+                    </div>
+                    <div class="form-group">
+                        <label for="opp-skills">Required Skills (Comma separated)</label>
+                        <input type="text" id="opp-skills" placeholder="e.g. Teamwork, Lifting, Patience">
+                    </div>
+                    <div class="form-group">
+                        <label for="opp-desc">Description</label>
+                        <textarea id="opp-desc" required rows="3" placeholder="Provide detailed volunteer instructions..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full margin-top">Create Opportunity</button>
+                </form>
+            </div>
+            
+            <!-- Category Chart / Analytics -->
+            <div class="admin-block glass-card margin-top">
+                <h2>Category Distribution</h2>
+                <div class="chart-container">
+                    <svg viewBox="0 0 200 120" width="100%" class="svg-chart">
+                        <!-- Simple visual bar chart using SVG -->
+                        {% set max_count = 1 %}
+                        {% for item in categories_data %}
+                            {% if item.count > max_count %}
+                                {% set max_count = item.count %}
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% for item in categories_data %}
+                            {% set bar_height = (item.count / max_count * 80) %}
+                            {% set x_pos = 10 + (loop.index0 * 38) %}
+                            {% set y_pos = 90 - bar_height %}
+                            
+                            <!-- Bar -->
+                            <rect x="{{ x_pos }}" y="{{ y_pos }}" width="24" height="{{ bar_height }}" rx="3" fill="var(--accent-color)" opacity="0.85" />
+                            <!-- Text Label (Abbreviated Category) -->
+                            <text x="{{ x_pos + 12 }}" y="105" font-size="7" fill="var(--text-color)" text-anchor="middle" font-family="var(--body-font)">
+                                {{ item.name[:5] }}
+                            </text>
+                            <!-- Count -->
+                            <text x="{{ x_pos + 12 }}" y="{{ y_pos - 4 }}" font-size="8" font-weight="600" fill="var(--text-color)" text-anchor="middle" font-family="var(--body-font)">
+                                {{ item.count }}
+                            </text>
+                        {% endfor %}
+                        <line x1="5" y1="90" x2="195" y2="90" stroke="var(--border-color)" stroke-width="1" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Hours Logger Modal Dialog -->
+<div id="hours-modal" class="modal">
+    <div class="modal-content glass-card hours-modal-width">
+        <span class="close-btn" onclick="closeHoursModal()">&times;</span>
+        <h2>Log Volunteer Service Hours</h2>
+        <p>Enter the number of hours this volunteer completed during this opportunity.</p>
+        
+        <form id="log-hours-form" onsubmit="handleLogHoursSubmit(event)">
+            <input type="hidden" id="log-app-id">
+            <div class="form-group">
+                <label for="logged-hours">Service Hours</label>
+                <input type="number" id="logged-hours" required step="0.5" min="0.5" max="24" value="2.0">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeHoursModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save & Log Hours</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

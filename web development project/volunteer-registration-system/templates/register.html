@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Join LendAHand | Volunteer Portal Registration{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container auth-container">
+        <!-- Brand Card Column -->
+        <div class="auth-brand-card glass-card">
+            <h2>Start Your Journey</h2>
+            <p>Become part of a network of active volunteers committing their skills to make local communities better, greener, and more resilient.</p>
+            
+            <div class="brand-stats">
+                <div class="brand-stat-item">
+                    <strong>120+</strong>
+                    <span>Volunteers</span>
+                </div>
+                <div class="brand-stat-item">
+                    <strong>840+</strong>
+                    <span>Hours Contributed</span>
+                </div>
+            </div>
+            
+            <div class="brand-testimonial">
+                <p>"The registration process was so simple, and within an hour, I was matched with an environmental drive in my neighborhood."</p>
+                <span>— Marcus, Eco-Volunteer</span>
+            </div>
+        </div>
+        
+        <!-- Form Content Column -->
+        <div class="auth-form-card glass-card">
+            <!-- Toggle Tabs -->
+            <div class="auth-tabs">
+                <button id="tab-login" class="auth-tab-btn active" onclick="switchAuthMode('login')">Sign In</button>
+                <button id="tab-register" class="auth-tab-btn" onclick="switchAuthMode('register')">Register</button>
+            </div>
+            
+            <!-- 1. LOGIN FORM -->
+            <div id="login-form-wrapper" class="auth-form-wrapper">
+                <form id="login-form" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" required placeholder="name@domain.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full margin-top">Sign In</button>
+                </form>
+            </div>
+            
+            <!-- 2. REGISTER MULTI-STEP WIZARD -->
+            <div id="register-form-wrapper" class="auth-form-wrapper hidden">
+                <!-- Step Indicator -->
+                <div class="step-indicator">
+                    <div class="step step-1 active" data-step="1">
+                        <div class="step-number">1</div>
+                        <div class="step-label">Account</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step step-2" data-step="2">
+                        <div class="step-number">2</div>
+                        <div class="step-label">Interests</div>
+                    </div>
+                </div>
+                
+                <form id="register-form" onsubmit="handleRegister(event)">
+                    <!-- STEP 1 CONTENT -->
+                    <div id="reg-step-1" class="registration-step-content">
+                        <div class="form-group">
+                            <label for="reg-name">Full Name</label>
+                            <input type="text" id="reg-name" placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-email">Email Address</label>
+                            <input type="email" id="reg-email" placeholder="name@domain.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-password">Password</label>
+                            <input type="password" id="reg-password" placeholder="Min. 6 characters">
+                        </div>
+                        <div class="grid grid-2">
+                            <div class="form-group">
+                                <label for="reg-phone">Phone Number</label>
+                                <input type="tel" id="reg-phone" placeholder="(123) 456-7890">
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-age">Age</label>
+                                <input type="number" id="reg-age" placeholder="Minimum 14" min="14" max="120">
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-full margin-top" onclick="nextRegisterStep()">Next Step &rarr;</button>
+                    </div>
+                    
+                    <!-- STEP 2 CONTENT -->
+                    <div id="reg-step-2" class="registration-step-content hidden">
+                        <!-- Skills Selector -->
+                        <div class="form-group">
+                            <label>Skills (Select all that apply)</label>
+                            <div id="skills-selector" class="tag-selector">
+                                <div class="selectable-tag" data-val="Gardening">Gardening</div>
+                                <div class="selectable-tag" data-val="STEM Tutoring">STEM Tutoring</div>
+                                <div class="selectable-tag" data-val="First Aid">First Aid</div>
+                                <div class="selectable-tag" data-val="Elder Care">Elder Care</div>
+                                <div class="selectable-tag" data-val="Lifting">Physical/Lifting</div>
+                                <div class="selectable-tag" data-val="Driver">Driver</div>
+                                <div class="selectable-tag" data-val="Cooking">Cooking/Food Prep</div>
+                                <div class="selectable-tag" data-val="Tech Help">Digital Literacy</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Interests/Causes Selector -->
+                        <div class="form-group">
+                            <label>Causes You Care About</label>
+                            <div id="interests-selector" class="tag-selector">
+                                <div class="selectable-tag" data-val="Environment">Environment</div>
+                                <div class="selectable-tag" data-val="Education">Education</div>
+                                <div class="selectable-tag" data-val="Community">Community Care</div>
+                                <div class="selectable-tag" data-val="Healthcare">Healthcare</div>
+                                <div class="selectable-tag" data-val="Disaster Relief">Disaster Relief</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Availability Selector -->
+                        <div class="form-group">
+                            <label>Availability (Days of week)</label>
+                            <div id="days-selector" class="tag-selector">
+                                <div class="selectable-tag" data-val="Mon">Mon</div>
+                                <div class="selectable-tag" data-val="Tue">Tue</div>
+                                <div class="selectable-tag" data-val="Wed">Wed</div>
+                                <div class="selectable-tag" data-val="Thu">Thu</div>
+                                <div class="selectable-tag" data-val="Fri">Fri</div>
+                                <div class="selectable-tag" data-val="Sat">Sat</div>
+                                <div class="selectable-tag" data-val="Sun">Sun</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-actions margin-top">
+                            <button type="button" class="btn btn-outline" onclick="prevRegisterStep()">&larr; Back</button>
+                            <button type="submit" class="btn btn-primary">Complete Registration</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

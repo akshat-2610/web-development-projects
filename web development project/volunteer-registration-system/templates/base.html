@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="LendAHand - The premium volunteer registration and opportunities system. Connect with impactful local events and track your community service hours.">
+    <title>{% block title %}LendAHand | Community Volunteer Registration System{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+    <!-- Header Navigation -->
+    <header class="main-header">
+        <div class="container header-container">
+            <a href="{{ url_for('home') }}" class="logo-link">
+                <div class="logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="var(--accent-color)" />
+                    </svg>
+                    <span>Lend<span>A</span>Hand</span>
+                </div>
+            </a>
+            
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="{{ url_for('home') }}" class="nav-link {% if request.path == '/' %}active{% endif %}">Home</a></li>
+                    <li><a href="{{ url_for('opportunities') }}" class="nav-link {% if request.path == '/opportunities' %}active{% endif %}">Opportunities</a></li>
+                    {% if session.get('volunteer_id') %}
+                        <li><a href="{{ url_for('dashboard') }}" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">Dashboard</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('admin') }}" class="nav-link {% if request.path == '/admin' %}active{% endif %}">Coordinators</a></li>
+                </ul>
+            </nav>
+            
+            <div class="header-actions">
+                <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme">
+                    <!-- Sun Icon -->
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <!-- Moon Icon -->
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                
+                {% if current_user %}
+                    <div class="user-profile-menu">
+                        <a href="{{ url_for('dashboard') }}" class="user-greeting">Hi, {{ current_user.name.split(' ')[0] }}</a>
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm">Log Out</a>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Join Us</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Global Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <div class="logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="var(--accent-color)" />
+                    </svg>
+                    <span>Lend<span>A</span>Hand</span>
+                </div>
+                <p class="footer-desc">Empowering individuals to connect, volunteer, and build stronger, more resilient local communities.</p>
+            </div>
+            
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="{{ url_for('opportunities') }}">Opportunities</a></li>
+                    <li><a href="{{ url_for('register') }}">Join as Volunteer</a></li>
+                    <li><a href="{{ url_for('admin') }}">Coordinators Portal</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-categories">
+                <h4>Causes Supported</h4>
+                <ul>
+                    <li><a href="{{ url_for('opportunities', category='Environment') }}">Environment</a></li>
+                    <li><a href="{{ url_for('opportunities', category='Education') }}">Education & Youth</a></li>
+                    <li><a href="{{ url_for('opportunities', category='Community') }}">Community Welfare</a></li>
+                    <li><a href="{{ url_for('opportunities', category='Healthcare') }}">Healthcare Support</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom text-center">
+            <p>&copy; 2026 LendAHand. Made with passion for social impact.</p>
+        </div>
+    </footer>
+
+    <!-- App Script -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

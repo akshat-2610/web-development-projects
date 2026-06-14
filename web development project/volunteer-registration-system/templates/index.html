@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}LendAHand | Empowering Local Volunteer Action{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container hero-container">
+        <div class="hero-text">
+            <span class="hero-badge">Make a Difference Today</span>
+            <h1 class="gradient-text">Empower Communities. Volunteer Your Skills.</h1>
+            <p class="hero-lead">LendAHand connects passionate volunteers with local non-profits and community-led events. Discover projects that match your unique skills and availability.</p>
+            <div class="hero-btns">
+                <a href="{{ url_for('opportunities') }}" class="btn btn-primary btn-lg">Explore Opportunities</a>
+                {% if not session.get('volunteer_id') %}
+                    <a href="{{ url_for('register') }}" class="btn btn-secondary btn-lg">Register to Volunteer</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="hero-image-placeholder">
+            <div class="glass-card hero-card">
+                <h3>Impact Spotlight</h3>
+                <p>"Volunteering here changed my perspective on community support. It's easy to sign up and instantly get involved!"</p>
+                <div class="spotlight-user">
+                    <div class="avatar">A</div>
+                    <div>
+                        <strong>Akshat</strong>
+                        <span>Volunteer since 2026</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Impact Stats Section -->
+<section class="stats-section">
+    <div class="container grid grid-3">
+        <div class="stat-card glass-card text-center">
+            <div class="stat-num" id="stat-volunteers">{{ volunteers_count }}</div>
+            <div class="stat-label">Active Volunteers</div>
+        </div>
+        <div class="stat-card glass-card text-center">
+            <div class="stat-num" id="stat-opportunities">{{ opps_count }}</div>
+            <div class="stat-label">Active Causes</div>
+        </div>
+        <div class="stat-card glass-card text-center">
+            <div class="stat-num" id="stat-hours">{{ total_hours }}</div>
+            <div class="stat-label">Hours Contributed</div>
+        </div>
+    </div>
+</section>
+
+<!-- Core Values / Why Volunteer Section -->
+<section class="features-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <h2>Why Volunteer with LendAHand?</h2>
+            <p class="subheading">We make community engagement simple, flexible, and rewarding.</p>
+        </div>
+        
+        <div class="grid grid-3 card-group">
+            <div class="feature-card glass-card">
+                <div class="icon-wrapper bg-violet">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+                <h3>Build Community Connections</h3>
+                <p>Connect with other passionate local volunteers, organizers, and non-profit leaders who share your vision for a better future.</p>
+            </div>
+            
+            <div class="feature-card glass-card">
+                <div class="icon-wrapper bg-emerald">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+                </div>
+                <h3>Develop & Share Skills</h3>
+                <p>Put your existing professional skills to good use, or learn entirely new abilities through hands-on community projects.</p>
+            </div>
+            
+            <div class="feature-card glass-card">
+                <div class="icon-wrapper bg-amber">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+                <h3>Flexible to Your Schedule</h3>
+                <p>Whether you have 2 hours a month or 20 hours a week, select events and assignments that seamlessly fit your lifestyle.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Opportunities -->
+<section class="featured-section">
+    <div class="container">
+        <div class="section-header-flex">
+            <div>
+                <h2>Featured Opportunities</h2>
+                <p class="subheading">Urgently seeking hands-on helpers. Join these sessions this week.</p>
+            </div>
+            <a href="{{ url_for('opportunities') }}" class="btn btn-outline">View All Opportunities &rarr;</a>
+        </div>
+        
+        <div class="grid grid-3 card-group">
+            {% for opp in featured_opps %}
+                <div class="opp-card glass-card">
+                    <div class="opp-category-tag {{ opp.category.lower().replace(' ', '-') }}">{{ opp.category }}</div>
+                    <h3>{{ opp.title }}</h3>
+                    <p class="opp-desc-short">{{ opp.description[:110] }}...</p>
+                    
+                    <div class="opp-details-list">
+                        <div class="opp-detail-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            <span>{{ opp.date }}</span>
+                        </div>
+                        <div class="opp-detail-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            <span>{{ opp.location }}</span>
+                        </div>
+                        <div class="opp-detail-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                            <span>{{ opp.slots_filled }} / {{ opp.max_slots }} Slots Filled</span>
+                        </div>
+                    </div>
+                    
+                    <div class="opp-card-footer">
+                        <button onclick="openOpportunityModal({{ opp.id }})" class="btn btn-outline btn-full">Learn More & Apply</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Banner -->
+{% if not session.get('volunteer_id') %}
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-banner glass-card text-center">
+            <h2>Ready to make a difference?</h2>
+            <p>Create your volunteer profile in under 2 minutes. Specify your skills, state your availability, and start supporting local causes.</p>
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Join LendAHand Today</a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Modal for Opportunity Details -->
+<div id="opp-modal" class="modal">
+    <div class="modal-content glass-card">
+        <span class="close-btn">&times;</span>
+        <div id="modal-loader" class="loader-placeholder">Loading details...</div>
+        <div id="modal-body" class="hidden">
+            <span id="modal-category" class="opp-category-tag">Category</span>
+            <h2 id="modal-title">Opportunity Title</h2>
+            <p id="modal-desc" class="modal-description">Detailed description goes here...</p>
+            
+            <div class="modal-meta-grid">
+                <div>
+                    <strong>Date:</strong>
+                    <span id="modal-date">June 25, 2026</span>
+                </div>
+                <div>
+                    <strong>Time:</strong>
+                    <span id="modal-time">09:00 AM - 01:00 PM</span>
+                </div>
+                <div>
+                    <strong>Location:</strong>
+                    <span id="modal-location">Central Park</span>
+                </div>
+                <div>
+                    <strong>Skills Required:</strong>
+                    <span id="modal-skills">None specified</span>
+                </div>
+                <div>
+                    <strong>Availability Slots:</strong>
+                    <span id="modal-slots">0 / 15 filled</span>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                {% if session.get('volunteer_id') %}
+                    <button id="modal-apply-btn" class="btn btn-primary btn-full">Confirm Application</button>
+                {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-full">Register to Apply</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Embedded initial data for modal search to avoid fetching delay
+    const seedOpportunities = {
+        {% for opp in featured_opps %}
+            "{{ opp.id }}": {
+                "title": "{{ opp.title | escape }}",
+                "description": "{{ opp.description | escape }}",
+                "category": "{{ opp.category | escape }}",
+                "date": "{{ opp.date | escape }}",
+                "time": "{{ opp.time | escape }}",
+                "location": "{{ opp.location | escape }}",
+                "skills": "{{ opp.required_skills | escape }}",
+                "slots": "{{ opp.slots_filled }} / {{ opp.max_slots }} filled",
+                "filled": {{ opp.slots_filled }},
+                "max": {{ opp.max_slots }}
+            },
+        {% endfor %}
+    };
+</script>
+{% endblock %}

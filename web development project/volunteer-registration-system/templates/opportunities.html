@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore Volunteer Opportunities | LendAHand{% endblock %}
+
+{% block content %}
+<section class="opportunities-hero-section text-center">
+    <div class="container">
+        <h1>Find Your Next Project</h1>
+        <p class="subheading text-center">Browse and search available community needs. Find the perfect fit for your talents.</p>
+    </div>
+</section>
+
+<!-- Filter and Search Bar -->
+<section class="filter-section">
+    <div class="container">
+        <form action="{{ url_for('opportunities') }}" method="GET" class="filter-form glass-card">
+            <div class="search-input-wrapper">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" name="search" placeholder="Search by title, keywords, or location..." value="{{ search_query }}" aria-label="Search opportunities">
+            </div>
+            
+            <div class="select-wrapper">
+                <select name="category" aria-label="Filter by Category" onchange="this.form.submit()">
+                    <option value="All" {% if selected_category == 'All' or not selected_category %}selected{% endif %}>All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Search</button>
+            {% if search_query or selected_category %}
+                <a href="{{ url_for('opportunities') }}" class="btn btn-outline">Clear Filters</a>
+            {% endif %}
+        </form>
+    </div>
+</section>
+
+<!-- Opportunities Board Grid -->
+<section class="opportunities-list-section">
+    <div class="container">
+        {% if opportunities %}
+            <div class="grid grid-3 card-group">
+                {% for opp in opportunities %}
+                    <div class="opp-card glass-card">
+                        <div class="opp-category-tag {{ opp.category.lower().replace(' ', '-') }}">{{ opp.category }}</div>
+                        <h3>{{ opp.title }}</h3>
+                        <p class="opp-desc-short">{{ opp.description[:110] }}...</p>
+                        
+                        <div class="opp-details-list">
+                            <div class="opp-detail-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                <span>{{ opp.date }}</span>
+                            </div>
+                            <div class="opp-detail-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                <span>{{ opp.location }}</span>
+                            </div>
+                            <div class="opp-detail-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                                <span>{{ opp.slots_filled }} / {{ opp.max_slots }} Slots Filled</span>
+                            </div>
+                        </div>
+                        
+                        <div class="opp-card-footer">
+                            <button onclick="openOpportunityModal({{ opp.id }})" class="btn btn-outline btn-full">Learn More & Apply</button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state glass-card text-center">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                <h3>No opportunities found</h3>
+                <p>We couldn't find any opportunities matching your filters. Try checking a different category or refining your search keywords.</p>
+                <a href="{{ url_for('opportunities') }}" class="btn btn-primary">Reset Filters</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Detail Modal -->
+<div id="opp-modal" class="modal">
+    <div class="modal-content glass-card">
+        <span class="close-btn">&times;</span>
+        <div id="modal-loader" class="loader-placeholder">Loading details...</div>
+        <div id="modal-body" class="hidden">
+            <span id="modal-category" class="opp-category-tag">Category</span>
+            <h2 id="modal-title">Opportunity Title</h2>
+            <p id="modal-desc" class="modal-description">Detailed description goes here...</p>
+            
+            <div class="modal-meta-grid">
+                <div>
+                    <strong>Date:</strong>
+                    <span id="modal-date">June 25, 2026</span>
+                </div>
+                <div>
+                    <strong>Time:</strong>
+                    <span id="modal-time">09:00 AM - 01:00 PM</span>
+                </div>
+                <div>
+                    <strong>Location:</strong>
+                    <span id="modal-location">Central Park</span>
+                </div>
+                <div>
+                    <strong>Skills Required:</strong>
+                    <span id="modal-skills">None specified</span>
+                </div>
+                <div>
+                    <strong>Availability Slots:</strong>
+                    <span id="modal-slots">0 / 15 filled</span>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                {% if session.get('volunteer_id') %}
+                    <button id="modal-apply-btn" class="btn btn-primary btn-full">Confirm Application</button>
+                {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-full">Register to Apply</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Seeding the script database for client-side modal search
+    const seedOpportunities = {
+        {% for opp in opportunities %}
+            "{{ opp.id }}": {
+                "title": "{{ opp.title | escape }}",
+                "description": "{{ opp.description | escape }}",
+                "category": "{{ opp.category | escape }}",
+                "date": "{{ opp.date | escape }}",
+                "time": "{{ opp.time | escape }}",
+                "location": "{{ opp.location | escape }}",
+                "skills": "{{ opp.required_skills | escape }}",
+                "slots": "{{ opp.slots_filled }} / {{ opp.max_slots }} filled",
+                "filled": {{ opp.slots_filled }},
+                "max": {{ opp.max_slots }}
+            },
+        {% endfor %}
+    };
+</script>
+{% endblock %}
